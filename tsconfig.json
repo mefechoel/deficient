@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    // "module": "ESNext",
+    "module": "CommonJS",
+    "outDir": "dist",
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strict": true,
+    "allowJs": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "lib": [
+      "dom",
+      "DOM.Iterable",
+      "es6",
+      "scripthost",
+      "es7",
+      "esnext"
+    ]
+  },
+  "include": ["src/**/*.ts", "src/**/*.js"],
+  "exclude": ["src/**/__testdata__/*"]
+}

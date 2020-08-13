@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Document</title>
+  </head>
+  <body>
+    <input
+      type="file"
+      name="img"
+      id="img"
+      accept="image/png, image/jpeg"
+    />
+
+    <select name="deficiency" id="deficiency">
+      <option value="protan">Protan</option>
+      <option value="deutan">Deutan</option>
+      <option value="tritan">Tritan</option>
+    </select>
+
+    <input
+      type="range"
+      name="severity"
+      id="severity"
+      min="0"
+      max="1"
+      step="0.05"
+    />
+    <div id="severity-display"></div>
+
+    <button id="btn">simulate</button>
+
+    <br />
+
+    <canvas id="canv-a" width="400" height="400"></canvas>
+    <canvas id="canv-b" width="400" height="400"></canvas>
+
+    <script type="module">
+      import { createSimulator } from '../dist/index.js';
+
+      const img = document.querySelector('#img');
+      const btn = document.querySelector('#btn');
+      const canvA = document.querySelector('#canv-a');
+      const canvB = document.querySelector('#canv-b');
+      const deficiency = document.querySelector('#deficiency');
+      const severity = document.querySelector('#severity');
+      const severityDisplay = document.querySelector(
+        '#severity-display',
+      );
+
+      window.s = createSimulator('protan', 1);
+      window.v = (r, g, b) => {
+        const { r: rOut, g: gOut, b: bOut } = voidcolor.protanomaly(
+          r,
+          g,
+          b,
+          1,
+        );
+        return [rOut, gOut, bOut];
+      };
+
+      const getImgArray = async () => {
+        const buffer = await img.files[0].arrayBuffer();
+        const array = new Uint8Array(buffer);
+      };
+
+      const createDataUrl = file => {
+        return new Promise(res => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const dataUrl = reader.result;
+            res(dataUrl);
+          };
+          reader.readAsDataURL(file);
+        });
+      };
+
+      const createImage = dataUrl =>
+        new Promise(res => {
+          const image = new Image();
+          image.onload = () => {
+            res(image);
+          };
+          image.src = dataUrl;
+        });
+
+      const imageFromFile = file =>
+        createDataUrl(file).then(createImage);
+
+      const draw = (image, simulate) => {
+        canvA.width = image.width;
+        canvA.height = image.height;
+        canvB.width = image.width;
+        canvB.height = image.height;
+        const ctxA = canvA.getContext('2d');
+        const ctxB = canvB.getContext('2d');
+        ctxA.drawImage(image, 0, 0);
+        const pixels = ctxA.getImageData(
+          0,
+          0,
+          canvA.width,
+          canvA.height,
+        );
+        const transPixels = ctxB.createImageData(
+          canvB.width,
+          canvB.height,
+        );
+        for (let i = 0; i < pixels.data.length; i += 4) {
+          const r = pixels.data[i];
+          const g = pixels.data[i + 1];
+          const b = pixels.data[i + 2];
+          const [xr, xg, xb] = simulate(r, g, b);
+          transPixels.data[i] = xr;
+          transPixels.data[i + 1] = xg;
+          transPixels.data[i + 2] = xb;
+          transPixels.data[i + 3] = pixels.data[i + 3];
+        }
+        ctxB.putImageData(transPixels, 0, 0);
+      };
+
+      const run = async e => {
+        const file = img.files[0];
+        const image = await imageFromFile(file);
+        const type = deficiency.value;
+        const severityRatio = Number(severity.value);
+        const simulate = createSimulator(type, severityRatio);
+        draw(image, simulate);
+      };
+
+      img.onchange = run;
+      btn.onclick = run;
+
+      const setSeverityDisplay = e => {
+        severityDisplay.textContent = severity.value;
+      };
+      severity.onchange = setSeverityDisplay;
+      setSeverityDisplay();
+    </script>
+  </body>
+</html>

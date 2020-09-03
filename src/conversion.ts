@@ -5,23 +5,31 @@ import {
   multiplyColor,
 } from './matrices';
 import { ColorArr } from './types';
-import { colorCodec, ColorEncoding } from './colorCodex';
+import { colorCodec, ColorEncoding } from './colorCodec';
 
-const rgbToLmsMValues = [
+const rgbToLmsMatrixValues = [
   0.31399022, 0.63951294, 0.04649755, // eslint-disable-line prettier/prettier
   0.15537241, 0.75789446, 0.08670142, // eslint-disable-line prettier/prettier
   0.01775239, 0.10944209, 0.87256922, // eslint-disable-line prettier/prettier
 ];
 
-export const rgbToLmsM = createMatrix(3, 3, rgbToLmsMValues);
+export const rgbToLmsMatrix = createMatrix(
+  3,
+  3,
+  rgbToLmsMatrixValues,
+);
 
-const lmsToRgbMValues = [
+const lmsToRgbMatrixValues = [
   5.47221206, -4.6419601, 0.16963708, // eslint-disable-line prettier/prettier
   -1.1252419, 2.29317094, -0.1678952, // eslint-disable-line prettier/prettier
   0.02980165, -0.19318073, 1.16364789, // eslint-disable-line prettier/prettier
 ];
 
-export const lmsToRgbM = createMatrix(3, 3, lmsToRgbMValues);
+export const lmsToRgbMatrix = createMatrix(
+  3,
+  3,
+  lmsToRgbMatrixValues,
+);
 
 export function convertColor(
   rgbColor: ColorArr,
@@ -32,10 +40,10 @@ export function convertColor(
 }
 
 export const rgbToLms = (rgbColor: number): number =>
-  multiplyColor(rgbToLmsM, rgbColor);
+  multiplyColor(rgbToLmsMatrix, rgbColor);
 
 export const lmsToRgb = (lmsColor: number): number =>
-  multiplyColor(lmsToRgbM, lmsColor);
+  multiplyColor(lmsToRgbMatrix, lmsColor);
 
 function sRgbToLinearComponent(sRgbComponent: number): number {
   const scaledComponent = sRgbComponent / 255;
@@ -204,25 +212,3 @@ export const Lms = {
     },
   },
 };
-
-// console.log(
-//   'rgbToLms [0, 0.5, 1]',
-//   pipe([0, 127, 255]).through(
-//     ([r, g, b]) => Rgb.create(r, g, b),
-//     tap(v => console.log(v)),
-//     tap(v => console.log(Lms.to.array(v))),
-//     rgbToLms,
-//     tap(v => console.log(Lms.to.array(v))),
-//     lmsToRgb,
-//     tap(v => console.log(Lms.to.array(v))),
-//     // tap(v => console.log(v)),
-//     tap(v => console.log(Rgb.to.array(v))),
-//   ),
-// );
-// console.log(
-//   pipe([0, 0.5, 1] as ColorArr).through(
-//     col => convertColor(col, rgbToLmsM),
-//     col => convertColor(col, lmsToRgbM),
-//     x => x.map(round),
-//   ),
-// );

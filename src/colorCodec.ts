@@ -30,13 +30,21 @@ export interface ColorCodec {
 }
 
 export function createColorCodec(): ColorCodec {
-  const shape = [9, 9, 9];
-  const colorBitfield = createBitFieldCodec([...shape, 3]);
+  const shape = [10, 10, 10, 2];
+  const colorBitfield = createBitFieldCodec(shape);
   const scales = [
     2 ** shape[0] - 1,
     2 ** shape[1] - 1,
     2 ** shape[2] - 1,
   ];
+  const initBitfields: {
+    [K: number]: number;
+  } = Object.fromEntries(
+    Object.entries(ColorEncoding).map(([, value]) => [
+      value,
+      colorBitfield.setValueAt(0, 3, value as number),
+    ]),
+  );
 
   function setValueAt(
     bitfield: number,
@@ -56,12 +64,13 @@ export function createColorCodec(): ColorCodec {
     channelC: number,
     encoding: ColorEncoding,
   ): number {
-    return colorBitfield.encode([
-      cap(channelA * scales[0], 0, scales[0]),
-      cap(channelB * scales[1], 0, scales[1]),
-      cap(channelC * scales[2], 0, scales[2]),
-      encoding,
-    ]);
+    const valueA = cap(channelA * scales[0], 0, scales[0]);
+    const valueB = cap(channelB * scales[1], 0, scales[1]);
+    const valueC = cap(channelC * scales[2], 0, scales[2]);
+    const initBitfield = initBitfields[encoding];
+    const fieldA = colorBitfield.setValueAt(initBitfield, 0, valueA);
+    const fieldB = colorBitfield.setValueAt(fieldA, 1, valueB);
+    return colorBitfield.setValueAt(fieldB, 2, valueC);
   }
 
   function getValueAt(bitfield: number, index: number): number {

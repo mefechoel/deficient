@@ -1,4 +1,4 @@
-import { colorCodec } from './colorCodex';
+import { colorCodec } from './colorCodec';
 import { getIndex, getX } from './util';
 
 export interface Matrix<W extends number, H extends number> {

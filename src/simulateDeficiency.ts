@@ -1,5 +1,5 @@
-import { multiplyColor } from './matrices';
-import { Rgb } from './conversion';
+import { multiplyColor, multiply } from './matrices';
+import { Rgb, rgbToLmsMatrix, lmsToRgbMatrix } from './conversion';
 import {
   Deficiency,
   createDeficiencyMatrix,
@@ -16,14 +16,14 @@ export function createSimulator(
   severity: number,
 ): SimulateFn {
   const deficiencyMatrix = createDeficiencyMatrix(type, severity);
+  const toLmsSim = multiply(deficiencyMatrix, rgbToLmsMatrix);
+  const toLmsSimToRgb = multiply(lmsToRgbMatrix, toLmsSim);
   const simulate = (r: number, g: number, b: number) => {
     const rgbColor = Rgb.create(r, g, b);
-    const lmsColor = Rgb.to.lms(rgbColor);
-    const transformedLmsColor = multiplyColor(
-      deficiencyMatrix,
-      lmsColor,
+    const transformedRgbColor = multiplyColor(
+      toLmsSimToRgb,
+      rgbColor,
     );
-    const transformedRgbColor = Rgb.from.lms(transformedLmsColor);
     return Rgb.to.array(transformedRgbColor);
   };
   return simulate;
